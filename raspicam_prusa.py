@@ -6,6 +6,8 @@ import os
 import time
 
 picturedir = os.path.join("/", "home", "Prusacam")
+filename = os.path.join(picturedir, "image.jpg")
+
 if not os.path.exists(picturedir):
     os.mkdir(picturedir)
 
@@ -13,7 +15,15 @@ def atob(base64_string):
     return base64.b64decode(base64_string)
 
 def get_image():
-    subprocess.run(["libcamera-still", "-o", os.path.join(picturedir, "image.jpg")])
+    # Check if the file exists
+    if os.path.exists(filename):
+    # Remove the file
+        os.remove(filename)
+        print(f"{filename} removed successfully.")
+    else:
+        print(f"{filename} does not exist.")
+    
+    subprocess.run(["libcamera-still", "--autofocus-mode", "continuous", "--hdr", "1", "-o", os.path.join(picturedir, "image.jpg")])
 
 def read_data(fpath):
     if not os.path.exists(fpath):
@@ -32,8 +42,8 @@ def main():
         url = "https://webcam.connect.prusa3d.com/c/snapshot"
         headers = {
             "content-type": "image/jpg",
-            "fingerprint": "<fingerprint>",  # replace with your fingerprint
-            "token": "<token>",  # replace with your token
+            "fingerprint": "70da3c685d1b714f587a25b034ca1414171c621d",  # replace with your fingerprint
+            "token": "EO3G8KAihckK8IOGNkbe",  # replace with your token
         }
 
         retry = True
