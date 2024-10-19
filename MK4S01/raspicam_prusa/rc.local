@@ -24,12 +24,10 @@ if [ "$_IP" ]; then
 
 fi
 
-/sbin/iwconfig wlan0 power off
-
 sleep 30
-cd /home/Prusacam/raspicam_prusa
+cd /home/Prusacam
 
-python3 ./raspicam_prusaXL.py & > log.txt
+python3 ./raspicam_prusaMK4S.py & > log.txt
 
 (sleep 1800 && sudo reboot) &
 
