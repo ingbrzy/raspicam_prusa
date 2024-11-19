@@ -4,62 +4,77 @@ import requests
 import subprocess
 import os
 import time
+import logging
+from dotenv import load_dotenv
 
-picturedir = os.path.join("/", "home", "Prusacam")
-filename = os.path.join(picturedir, "image.jpg")
+# Load environment variables from a .env file
+load_dotenv()
 
-if not os.path.exists(picturedir):
-    os.mkdir(picturedir)
+# Set up logging
+logging.basicConfig(level=logging.INFO, filename='camera.log', format='%(asctime)s %(message)s')
 
-def atob(base64_string):
-    return base64.b64decode(base64_string)
+# Environment Variables
+PICTURE_DIR = os.path.join("/", "home", "Prusacam")
+FILENAME = os.path.join(PICTURE_DIR, "image.jpg")
+FINGERPRINT = os.getenv("70da3c685d1b714f587a25b034ca1414171c621d")
+TOKEN = os.getenv("Ag9AUEPuDOA9VV4AoedN")
+UPLOAD_URL = "https://webcam.connect.prusa3d.com/c/snapshot"
+
+# Ensure directory exists
+os.makedirs(PICTURE_DIR, exist_ok=True)
 
 def get_image():
-    # Check if the file exists
-    if os.path.exists(filename):
-    # Remove the file
-        os.remove(filename)
-        print(f"{filename} removed successfully.")
-    else:
-        print(f"{filename} does not exist.")
+    if os.path.exists(FILENAME):
+        os.remove(FILENAME)
+        logging.info(f"{FILENAME} removed successfully.")
     
-    subprocess.run(["libcamera-still", "--autofocus-mode", "continuous", "--hdr", "sensor", "-o", os.path.join(picturedir, "image.jpg")])
+    subprocess.run([
+        "libcamera-still", 
+        "--autofocus-mode", "continuous", 
+        "--hdr", "sensor", 
+        "--hflip", "1", 
+        "--vflip", "1", 
+        "-o", FILENAME
+    ])
 
-def read_data(fpath):
-    if not os.path.exists(fpath):
+def read_data(filepath):
+    if not os.path.exists(filepath):
+        logging.warning(f"{filepath} does not exist.")
         return b""
-    with open(fpath, 'rb') as file:
-        data = file.read()
-    return data
+    with open(filepath, 'rb') as file:
+        return file.read()
 
 def main():
-    while True:
-        get_image()
-        filename = os.path.join(picturedir, "image.jpg")
-        snapshot = read_data(filename)
-        if snapshot == b"":
-            continue
-        url = "https://webcam.connect.prusa3d.com/c/snapshot"
-        headers = {
-            "content-type": "image/jpg",
-            "fingerprint": "70da3c685d1b714f587a25b034ca1414171c621d",  # replace with your fingerprint
-            "token": "zQoBQiHc24SJSQbjEFTb",  # replace with your token
-        }
+    try:
+        while True:
+            get_image()
+            snapshot = read_data(FILENAME)
+            if not snapshot:
+                continue
 
-        retry = True
-        while retry:
-            try:
-                response = requests.put(url, headers=headers, data=snapshot)
-                print(response.status_code)
-                if response.status_code == 200:
-                    os.remove(filename)
-                retry = False
-            except requests.exceptions.RequestException as e:
-                print("Connection error:", e)
-                print("Retrying in 60 seconds...")
-                time.sleep(60)
+            headers = {
+                "content-type": "image/jpg",
+                "fingerprint": FINGERPRINT,
+                "token": TOKEN,
+            }
 
-        time.sleep(10)
+            retry = True
+            while retry:
+                try:
+                    response = requests.put(UPLOAD_URL, headers=headers, data=snapshot, timeout=10)
+                    logging.info(f"HTTP Response Code: {response.status_code}")
+                    if response.status_code == 200:
+                        os.remove(FILENAME)
+                        logging.info("Image uploaded and removed successfully.")
+                    retry = False
+                except requests.exceptions.RequestException as e:
+                    logging.error(f"Connection error: {e}")
+                    logging.info("Retrying in 60 seconds...")
+                    time.sleep(60)
+
+            time.sleep(10)
+    except KeyboardInterrupt:
+        logging.info("Script interrupted. Exiting gracefully.")
 
 if __name__ == "__main__":
     main()
