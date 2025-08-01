@@ -23,7 +23,7 @@ def get_image():
     else:
         print(f"{filename} does not exist.")
     
-    subprocess.run(["libcamera-still", "--autofocus-mode", "continuous", "--hdr", "1", "-o", os.path.join(picturedir, "image.jpg")])
+    subprocess.run(["libcamera-still", "--autofocus-mode", "continuous", "--hdr", "sensor", "-o", os.path.join(picturedir, "image.jpg")])
 
 def read_data(fpath):
     if not os.path.exists(fpath):
