@@ -18,7 +18,7 @@ PICTURE_DIR = os.path.join("/", "home", "Prusacam")
 FILENAME = os.path.join(PICTURE_DIR, "image.jpg")
 FINGERPRINT = os.getenv("70da3c685d1b714f587a25b034ca1414171c621d")
 TOKEN = os.getenv("Ag9AUEPuDOA9VV4AoedN")
-UPLOAD_URL = "https://webcam.connect.prusa3d.com/c/snapshot"
+UPLOAD_URL = "https://connect.prusa3d.com/c/snapshot"
 
 # Ensure directory exists
 os.makedirs(PICTURE_DIR, exist_ok=True)
