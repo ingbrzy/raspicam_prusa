@@ -39,7 +39,7 @@ def main():
         snapshot = read_data(filename)
         if snapshot == b"":
             continue
-        url = "https://webcam.connect.prusa3d.com/c/snapshot"
+        url = "https://connect.prusa3d.com/c/snapshot"
         headers = {
             "content-type": "image/jpg",
             "fingerprint": "70da3c685d1b714f587a25b034ca1414171c621d",  # replace with your fingerprint
